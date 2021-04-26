@@ -44,7 +44,20 @@ bot.on('message', async msg => {
             }
             if (msg.text && msg.text === '/stats') {
                 const users = await Users.find()
-                const text = csv(users)
+                let arr = []
+                for (let i = 0; i < users.length; i++) {
+                    const u = users[i]
+                    arr.push({
+                        ID: u.id,
+                        FirstName: u.first_name,
+                        LastUpdate: new Date(u.lastUpdate).toLocaleDateString(),
+                        RegDate: new Date(u.regDate).toLocaleDateString(),
+                        Left: `${u.left?'Yes':'No'}`,
+                        Banned: `${u.banned?'Yes':'No'}`,
+                        CompletedForm: `${u.asked?'Yes':'No'}`
+                    })
+                }
+                const text = csv(arr)
                 await fs.writeFileSync(path.join(__dirname, 'database', 'db.csv'), text, {
                     flag: 'w',
                     encoding: 'utf-8'
