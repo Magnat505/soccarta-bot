@@ -37,7 +37,7 @@ bot.on('message', async msg => {
             caption, parse_mode: 'HTML',
             reply_markup: {inline_keyboard: kb}
         })
-        if (fromId === config.admin) {
+        if (fromId === Number(config.admin)) {
             if (msg.text && msg.text === '/mail') {
                 admin_state = 'on_mail'
                 return msg.send('Пришлите сообщение:')
@@ -137,14 +137,8 @@ bot.on('message', async msg => {
             user.left = false
             await user.save()
         }
-        if (user.asked) {
-            if (msg.text === '/start') {
-                return msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
-            }
-            return msg.send(utils.formAnswerMessage)
-        }
         if (user.state) {
-            if (msg.text === '/start') {
+            if (msg.text && msg.text === '/start') {
                 await msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
                 return msg.send(`Оформляем?`)
             }
@@ -163,11 +157,11 @@ bot.on('message', async msg => {
             await user.save()
             return msg.send(utils.formAnswerMessage)
         }
-        if (msg.text === '/start') {
-            user.state = 'on_question'
-            await user.save()
-            await msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
-            return msg.send(`Оформляем?`)
+        if (user.asked) {
+            if (msg.text && msg.text === '/start') {
+                return msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
+            }
+            return msg.send(utils.formAnswerMessage)
         }
     } catch (e) {
         console.log(e)
