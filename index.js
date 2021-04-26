@@ -52,6 +52,8 @@ bot.on('message', async msg => {
             }
             if (msg.text && msg.text === '/stats') {
                 const users = await Users.find()
+                const banned = await Users.find({banned: true})
+                const left = await Users.find({left: true})
                 let arr = []
                 for (let i = 0; i < users.length; i++) {
                     const u = users[i]
@@ -64,11 +66,25 @@ bot.on('message', async msg => {
                         CompletedForm: `${u.asked?'Yes':'No'}`
                     })
                 }
+                let u_arr = []
+                for (let i = 0; i < users.length; i++) {
+                    const u = users[i]
+                    u_arr.push({
+                        regDate: new Date(u.regDate).getTime()
+                    })
+                }
+                const all = u_arr.length
+                const today_joined = u_arr.filter(b => b.regDate >= Date.now()-(1000*60*60*24)).length
                 const text = csv(arr)
                 await fs.writeFileSync(path.join(__dirname, 'database', 'db.csv'), text, {
                     flag: 'w',
                     encoding: 'utf-8'
                 })
+                await bot.sendMessage(fromId, `Статистика пользователей бота:
+                Всего: ${all}
+                Новые за последние 24 часа: ${today_joined}
+                Забаненные: ${banned.length}
+                Покинули бота: ${left.length}`)
                 return bot.sendDocument(fromId, path.join(__dirname, 'database', 'db.csv'))
             }
             if (msg.text && msg.text.startsWith('/ban ')) {
