@@ -1,11 +1,14 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const fs = require('fs')
+const path = require('path')
+const csv = require('csvjson-json2csv')
 const TelegramBot = require('node-telegram-bot-api')
 const config = require('./config')
 const utils = require('./utils')
 
 const app = express()
-const bot = new TelegramBot(config.token, {polling: true})
+const bot = new TelegramBot(config.token)
 
 const Users = require('./models/Users')
 
@@ -14,6 +17,12 @@ let mailType = ''
 let mailText = ''
 let mailFileId = ''
 let mailKeyboard = []
+
+app.use(express.json())
+app.post(`/bot${config.token}`, (req, res) => {
+    bot.processUpdate(req.body)
+    res.status(201)
+})
 
 bot.on('message', async msg => {
     try {
@@ -35,8 +44,26 @@ bot.on('message', async msg => {
             }
             if (msg.text && msg.text === '/stats') {
                 const users = await Users.find()
-                const blocked = await Users.find({left: true})
-                return msg.send(`Всего: ${users.length} пользователей, блокировали бота ${blocked.length}`)
+                const text = csv(users)
+                await fs.writeFileSync(path.join(__dirname, 'database', 'db.csv'), text, {
+                    flag: 'w',
+                    encoding: 'utf-8'
+                })
+                return bot.sendDocument(fromId, path.join(__dirname, 'database', 'db.csv'))
+            }
+            if (msg.text && msg.text.startsWith('/ban ')) {
+                const id = msg.text.substr(5, msg.text.length)
+                const u = await Users.findOne({id})
+                if (u.banned) {
+                    u.banned = true
+                    await u.save()
+                    return msg.send('С пользователя снят бан')
+                }
+                if (!u.banned) {
+                    u.banned = true
+                    await u.save()
+                    return msg.send('Пользователь забанен')
+                }
             }
             if (admin_state && admin_state === 'on_mail') {
                 if (msg.text) {
@@ -98,6 +125,8 @@ bot.on('message', async msg => {
                 regDate: Date.now(),
                 lastUpdate: Date.now(),
                 left: false,
+                asked: false,
+                banned: false,
                 state: 'on_question'
             })
             await nUser.save()

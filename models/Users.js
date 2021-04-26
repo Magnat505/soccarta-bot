@@ -7,7 +7,8 @@ const schema = new Schema({
     regDate: Date,
     state: String,
     left: Boolean,
-    asked: Boolean
+    asked: Boolean,
+    banned: Boolean
 })
 
 module.exports = model('users', schema)
