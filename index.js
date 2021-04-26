@@ -38,6 +38,14 @@ bot.on('message', async msg => {
             reply_markup: {inline_keyboard: kb}
         })
         if (fromId === Number(config.admin)) {
+            if (msg.text && msg.text === '/start') {
+                admin_state = null
+                mailType = ''
+                mailText = ''
+                mailFileId = ''
+                mailKeyboard = []
+                return msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
+            }
             if (msg.text && msg.text === '/mail') {
                 admin_state = 'on_mail'
                 return msg.send('Пришлите сообщение:')
