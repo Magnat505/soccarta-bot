@@ -70,11 +70,13 @@ bot.on('message', async msg => {
                 for (let i = 0; i < users.length; i++) {
                     const u = users[i]
                     u_arr.push({
-                        regDate: new Date(u.regDate).getTime()
+                        regDate: new Date(u.regDate).getTime(),
+                        active: u.active
                     })
                 }
                 const all = u_arr.length
                 const today_joined = u_arr.filter(b => b.regDate >= Date.now()-(1000*60*60*24)).length
+                const today_active = u_arr.filter(b => b.active >= Date.now()-(1000*60*60*24)).length
                 const text = csv(arr)
                 await fs.writeFileSync(path.join(__dirname, 'database', 'db.csv'), text, {
                     flag: 'w',
@@ -84,7 +86,8 @@ bot.on('message', async msg => {
                 Всего: ${all}
                 Новые за последние 24 часа: ${today_joined}
                 Забаненные: ${banned.length}
-                Покинули бота: ${left.length}`)
+                Покинули бота: ${left.length}
+                Активные сегодня: ${today_active}`)
                 return bot.sendDocument(fromId, path.join(__dirname, 'database', 'db.csv'))
             }
             if (msg.text && msg.text.startsWith('/ban ')) {
@@ -172,6 +175,8 @@ bot.on('message', async msg => {
             user.left = false
             await user.save()
         }
+        user.active = Date.now()
+        await user.save()
         if (user.state) {
             if (msg.text && msg.text === '/start') {
                 await msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
