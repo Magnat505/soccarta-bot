@@ -168,6 +168,9 @@ bot.on('message', async msg => {
             await user.save()
             return msg.send(utils.formAnswerMessage)
         }
+        if (user.banned) {
+            return bot.deleteMessage(fromId, msg.message_id)
+        }
         if (user.asked) {
             if (msg.text && msg.text === '/start') {
                 return msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
@@ -191,7 +194,7 @@ bot.on('callback_query', async query => {
             caption, parse_mode: 'HTML',
             reply_markup: {inline_keyboard: kb}
         })
-        if (config.admin === fromId) {
+        if (fromId === Number(config.admin)) {
             if (admin_state && admin_state === 'on_kb') {
                 if (query.data === 'skip') {
                     admin_state = 'on_preview'
