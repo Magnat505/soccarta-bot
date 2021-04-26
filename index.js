@@ -1,0 +1,251 @@
+const express = require('express')
+const mongoose = require('mongoose')
+const TelegramBot = require('node-telegram-bot-api')
+const config = require('./config')
+const utils = require('./utils')
+
+const app = express()
+const bot = new TelegramBot(config.token, {polling: true})
+
+const Users = require('./models/Users')
+
+let admin_state = null
+let mailType = ''
+let mailText = ''
+let mailFileId = ''
+let mailKeyboard = []
+
+bot.on('message', async msg => {
+    try {
+        const fromId = msg.from.id
+        const user = await Users.findOne({id: fromId})
+        msg.send = async (text, kb) => await bot.sendMessage(fromId, text, {reply_markup: {inline_keyboard: kb}, parse_mode: 'HTML', disable_web_page_preview: true})
+        msg.send_photo = async (photo, caption, kb) => await bot.sendPhoto(fromId, photo, {
+            caption, parse_mode: 'HTML',
+            reply_markup: {inline_keyboard: kb}
+        })
+        msg.send_video = async (video, caption, kb) => await bot.sendVideo(fromId, video, {
+            caption, parse_mode: 'HTML',
+            reply_markup: {inline_keyboard: kb}
+        })
+        if (fromId === config.admin) {
+            if (msg.text && msg.text === '/mail') {
+                admin_state = 'on_mail'
+                return msg.send('Пришлите сообщение:')
+            }
+            if (msg.text && msg.text === '/stats') {
+                const users = await Users.find()
+                const blocked = await Users.find({left: true})
+                return msg.send(`Всего: ${users.length} пользователей, блокировали бота ${blocked.length}`)
+            }
+            if (admin_state && admin_state === 'on_mail') {
+                if (msg.text) {
+                    mailType = 'text'
+                    mailText = msg.text
+                    admin_state = 'on_kb'
+                    return msg.send(utils.kbCreateText, [[{text: 'Пропустить', callback_data: 'skip'}]])
+                }
+                if (msg.photo) {
+                    mailType = 'photo'
+                    mailText = msg.caption
+                    mailFileId = msg.photo[msg.photo.length-1].file_id
+                    admin_state = 'on_kb'
+                    return msg.send(utils.kbCreateText, [[{text: 'Пропустить', callback_data: 'skip'}]])
+                }
+                if (msg.video) {
+                    mailType = 'video'
+                    mailText = msg.caption
+                    mailFileId = msg.video.file_id
+                    admin_state = 'on_kb'
+                    return msg.send(utils.kbCreateText, [[{text: 'Пропустить', callback_data: 'skip'}]])
+                }
+            }
+            if (admin_state && admin_state === 'on_kb') {
+                const arr = msg.text.split('\n')
+                for (let i = 0; i < arr.length; i++) {
+                    const text = arr[i].split(' - ')[0]
+                    const url = arr[i].split(' - ')[1]
+                    mailKeyboard.push([{text, url}])
+                }
+                admin_state = 'on_preview'
+                if (mailType === 'text') {
+                    return msg.send(mailText, [
+                        ...mailKeyboard?mailKeyboard:null,
+                        [{text: `Отмена`, callback_data: 'cancel'}],
+                        [{text: `Начать рассылку`, callback_data: 'mail'}]
+                    ])
+                }
+                if (mailType === 'photo') {
+                    return msg.send_photo(mailFileId, mailText, [
+                        ...mailKeyboard?mailKeyboard:null,
+                        [{text: `Отмена`, callback_data: 'cancel'}],
+                        [{text: `Начать рассылку`, callback_data: 'mail'}]
+                    ])
+                }
+                if (mailType === 'video') {
+                    return msg.send_video(mailFileId, mailText, [
+                        ...mailKeyboard?mailKeyboard:null,
+                        [{text: `Отмена`, callback_data: 'cancel'}],
+                        [{text: `Начать рассылку`, callback_data: 'mail'}]
+                    ])
+                }
+            }
+        }
+        if (!user) {
+            const nUser = new Users({
+                id: fromId,
+                first_name: msg.from.first_name,
+                regDate: Date.now(),
+                lastUpdate: Date.now(),
+                left: false,
+                state: 'on_question'
+            })
+            await nUser.save()
+            await msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
+            return msg.send(`Оформляем?`)
+        }
+        if (user.left) {
+            user.left = false
+            await user.save()
+        }
+        if (user.asked) {
+            if (msg.text === '/start') {
+                return msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
+            }
+            return msg.send(utils.formAnswerMessage)
+        }
+        if (user.state) {
+            if (msg.text === '/start') {
+                await msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
+                return msg.send(`Оформляем?`)
+            }
+            await bot.sendMessage(config.admin, `Пользователь <a href="tg://user?id=${fromId}">${user.first_name}</a> ответил на вашу форму.`, {parse_mode: 'HTML'})
+            if (msg.text) {
+                await bot.sendMessage(config.admin, msg.text)
+            }
+            if (msg.photo) {
+                await bot.sendPhoto(config.admin, msg.photo[msg.photo.length-1].file_id, {caption: msg.caption})
+            }
+            if (msg.video) {
+                await bot.sendPhoto(config.admin, msg.video.file_id, {caption: msg.caption})
+            }
+            user.state = null
+            user.asked = true
+            await user.save()
+            return msg.send(utils.formAnswerMessage)
+        }
+        if (msg.text === '/start') {
+            user.state = 'on_question'
+            await user.save()
+            await msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
+            return msg.send(`Оформляем?`)
+        }
+    } catch (e) {
+        console.log(e)
+    }
+})
+
+bot.on('callback_query', async query => {
+    try {
+        const fromId = query.from.id
+        query.send = async (text, kb) => await bot.sendMessage(fromId, text, {reply_markup: {inline_keyboard: kb}, parse_mode: 'HTML'})
+        query.send_photo = async (photo, caption, kb) => await bot.sendPhoto(fromId, photo, {
+            caption, parse_mode: 'HTML',
+            reply_markup: {inline_keyboard: kb}
+        })
+        query.send_video = async (video, caption, kb) => await bot.sendVideo(fromId, video, {
+            caption, parse_mode: 'HTML',
+            reply_markup: {inline_keyboard: kb}
+        })
+        if (config.admin === fromId) {
+            if (admin_state && admin_state === 'on_kb') {
+                if (query.data === 'skip') {
+                    admin_state = 'on_preview'
+                    if (mailType === 'text') {
+                        return query.send(mailText, [
+                            ...mailKeyboard?mailKeyboard:null,
+                            [{text: `Отмена`, callback_data: 'cancel'}],
+                            [{text: `Начать рассылку`, callback_data: 'mail'}]
+                        ])
+                    }
+                    if (mailType === 'photo') {
+                        return query.send_photo(mailFileId, mailText, [
+                            ...mailKeyboard?mailKeyboard:null,
+                            [{text: `Отмена`, callback_data: 'cancel'}],
+                            [{text: `Начать рассылку`, callback_data: 'mail'}]
+                        ])
+                    }
+                    if (mailType === 'video') {
+                        return query.send_video(mailFileId, mailText, [
+                            ...mailKeyboard?mailKeyboard:null,
+                            [{text: `Отмена`, callback_data: 'cancel'}],
+                            [{text: `Начать рассылку`, callback_data: 'mail'}]
+                        ])
+                    }
+                }
+            }
+            if (admin_state && admin_state === 'on_preview') {
+                if (query.data === 'mail') {
+                    const users = await Users.find({left: false})
+                    admin_state = null
+                    for (let i = 0; i < users.length; i++) {
+                        const user = await Users.findOne({id: users[i].id})
+                        if (mailType === 'text') {
+                            try {
+                                await bot.sendMessage(user.id, mailText, {reply_markup: {inline_keyboard: mailKeyboard}})
+                            } catch (e) {
+                                user.left = true
+                                await user.save()
+                            }
+                        }
+                        if (mailType === 'photo') {
+                            try {
+                                await bot.sendPhoto(user.id, mailFileId, {
+                                    caption: mailText,
+                                    reply_markup: {inline_keyboard: mailKeyboard}
+                                })
+                            } catch (e) {
+                                user.left = true
+                                await user.save()
+                            }
+
+                        }
+                        if (mailType === 'video') {
+                            try {
+                                await bot.sendVideo(user.id, mailFileId, {
+                                    caption: mailText,
+                                    reply_markup: {inline_keyboard: mailKeyboard}
+                                })
+                            } catch (e) {
+                                user.left = true
+                                await user.save()
+                            }
+                        }
+                    }
+                    mailType = ''
+                    mailText = ''
+                    mailFileId = ''
+                    mailKeyboard = []
+                    return query.send('Рассылка завершена!')
+                }
+            }
+        }
+    } catch (e) {
+        console.log(e)
+    }
+})
+
+async function start() {
+    try {
+        await mongoose.connect(config.db, {
+            useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true
+        })
+        app.listen(config.port, () => {
+            console.log('Server is running')
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+start()
