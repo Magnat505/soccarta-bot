@@ -50,7 +50,6 @@ bot.on('message', async msg => {
                     arr.push({
                         ID: u.id,
                         FirstName: u.first_name,
-                        LastUpdate: new Date(u.lastUpdate).toLocaleDateString(),
                         RegDate: new Date(u.regDate).toLocaleDateString(),
                         Left: `${u.left?'Yes':'No'}`,
                         Banned: `${u.banned?'Yes':'No'}`,
@@ -136,7 +135,6 @@ bot.on('message', async msg => {
                 id: fromId,
                 first_name: msg.from.first_name,
                 regDate: Date.now(),
-                lastUpdate: Date.now(),
                 left: false,
                 asked: false,
                 banned: false,
