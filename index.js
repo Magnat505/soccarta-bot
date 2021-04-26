@@ -215,7 +215,7 @@ bot.on('callback_query', async query => {
             }
             if (admin_state && admin_state === 'on_preview') {
                 if (query.data === 'mail') {
-                    const users = await Users.find({left: false})
+                    const users = await Users.find({left: false, banned: false})
                     admin_state = null
                     for (let i = 0; i < users.length; i++) {
                         const user = await Users.findOne({id: users[i].id})
