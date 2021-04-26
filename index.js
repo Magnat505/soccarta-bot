@@ -21,7 +21,7 @@ let mailKeyboard = []
 app.use(express.json())
 app.post(`/bot${config.token}`, (req, res) => {
     bot.processUpdate(req.body)
-    res.status(201)
+    res.sendStatus(201)
 })
 
 bot.on('message', async msg => {
