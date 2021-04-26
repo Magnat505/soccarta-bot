@@ -75,7 +75,7 @@ bot.on('message', async msg => {
                 const id = msg.text.substr(5, msg.text.length)
                 const u = await Users.findOne({id})
                 if (u.banned) {
-                    u.banned = true
+                    u.banned = false
                     await u.save()
                     return msg.send('С пользователя снят бан')
                 }
@@ -230,6 +230,14 @@ bot.on('callback_query', async query => {
                 }
             }
             if (admin_state && admin_state === 'on_preview') {
+                if (query.data === 'cancel') {
+                    admin_state = null
+                    mailType = ''
+                    mailText = ''
+                    mailFileId = ''
+                    mailKeyboard = []
+                    return query.send('Действие отменено!')
+                }
                 if (query.data === 'mail') {
                     const users = await Users.find({left: false, banned: false})
                     admin_state = null
