@@ -63,6 +63,7 @@ bot.on('message', async msg => {
                 const users = await Users.find()
                 const banned = await Users.find({banned: true})
                 const left = await Users.find({left: true})
+                const activeUsers = users.length - left.length
                 let arr = []
                 for (let i = 0; i < users.length; i++) {
                     const u = users[i]
@@ -96,7 +97,8 @@ bot.on('message', async msg => {
                 Новые за последние 24 часа: ${today_joined}
                 Забаненные: ${banned.length}
                 Покинули бота: ${left.length}
-                Активные сегодня: ${today_active}`)
+                Активные сегодня: ${today_active}
+                Активные пользователи: ${activeUsers}`)
                 return bot.sendDocument(fromId, path.join(__dirname, 'database', 'db.csv'))
             }
             if (msg.text && msg.text.startsWith('/ban ')) {
