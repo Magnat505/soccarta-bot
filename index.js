@@ -44,13 +44,22 @@ bot.on('message', async msg => {
                 mailText = ''
                 mailFileId = ''
                 mailKeyboard = []
-                return msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
+                await msg.send_photo(utils.homeMedia, utils.homeText, utils.homeMarkup)
+                return bot.sendMessage(fromId, 'Выберите действие:', {
+                    reply_markup: {
+                        resize_keyboard: true,
+                        keyboard: [
+                            ['Mailing'],
+                            ['Statistics']
+                        ]
+                    }
+                })
             }
-            if (msg.text && msg.text === '/mail') {
+            if (msg.text && msg.text === 'Mailing') {
                 admin_state = 'on_mail'
                 return msg.send('Пришлите сообщение:')
             }
-            if (msg.text && msg.text === '/stats') {
+            if (msg.text && msg.text === 'Statistics') {
                 const users = await Users.find()
                 const banned = await Users.find({banned: true})
                 const left = await Users.find({left: true})
