@@ -8,8 +8,7 @@ module.exports = {
 
 Чтоб узнать актуальную цену ,подписывайтесь на канал @SOCCARTAA`,
     homeMarkup: [
-        [{text: `Преймущества карты`, url: process.env.BTN_ONE}],
-        [{text: `Инструкция по получению карты`, url: process.env.BTN_TWO}],
+        [{text: `Преимущества карты`, url: process.env.BTN_ONE}],
         [{text: `Цена карты`, url: process.env.BTN_THREE}],
         [{text: `Связь с менеджером`, url: process.env.BTN_FOUR}]
     ],
