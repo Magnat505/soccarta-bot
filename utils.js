@@ -15,7 +15,7 @@ module.exports = {
     ],
     homeMedia: path.join(__dirname, 'database', 'img.png'),
     formAnswerMessage: `Отлично!
-По всем вопросам и для заказа, можете обратиться к нашему <a href="https://t.me/KartaSocMsk">МЕНЕДЖЕРУ</a>`,
+По всем вопросам и для заказа, можете обратиться к нашему <a href="https://t.me/KartaSoc">МЕНЕДЖЕРУ</a>`,
     kbCreateText: `Напишите кнопки. Каждая кнопка с новой строки
     Пример:
 Перейти - https://t.me/soccarta
