@@ -23,7 +23,7 @@ app.post(`/bot${config.token}`, (req, res) => {
     bot.processUpdate(req.body)
     res.sendStatus(201)
 })
-
+// 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
 bot.on('message', async msg => {
     try {
         const fromId = msg.from.id
