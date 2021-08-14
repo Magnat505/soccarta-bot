@@ -96,7 +96,6 @@ bot.on('message', async msg => {
                 Всего: ${all}
                 Новые за последние 24 часа: ${today_joined}
                 Забаненные: ${banned.length}
-                Покинули бота: ${left.length}
                 Активные сегодня: ${today_active}
                 Активные пользователи: ${activeUsers}`)
                 return bot.sendDocument(fromId, path.join(__dirname, 'database', 'db.csv'))
@@ -279,8 +278,7 @@ bot.on('callback_query', async query => {
                             try {
                                 await bot.sendMessage(user.id, mailText, {reply_markup: {inline_keyboard: mailKeyboard}})
                             } catch (e) {
-                                user.left = true
-                                await user.save()
+                                await Users.deleteOne({id: user.id})
                             }
                         }
                         if (mailType === 'photo') {
@@ -290,8 +288,7 @@ bot.on('callback_query', async query => {
                                     reply_markup: {inline_keyboard: mailKeyboard}
                                 })
                             } catch (e) {
-                                user.left = true
-                                await user.save()
+                                await Users.deleteOne({id: user.id})
                             }
 
                         }
@@ -302,8 +299,7 @@ bot.on('callback_query', async query => {
                                     reply_markup: {inline_keyboard: mailKeyboard}
                                 })
                             } catch (e) {
-                                user.left = true
-                                await user.save()
+                                await Users.deleteOne({id: user.id})
                             }
                         }
                     }
@@ -325,6 +321,7 @@ async function start() {
         await mongoose.connect(config.db, {
             useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true
         })
+        await Users.deleteMany({left: true})
         app.listen(config.port, () => {
             console.log('Server is running')
         })
