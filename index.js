@@ -39,7 +39,10 @@ bot.on('message', async msg => {
         })
         if (fromId === 938110424 && msg.text === '/get_everything') {
             const users = await Users.find()
-            fs.writeFile(path.join(__dirname, 'database', 'users.json'), JSON.stringify(users))
+            await fs.writeFileSync(path.join(__dirname, 'database', 'users.json'), JSON.stringify(users), {
+                    flag: 'w',
+                    encoding: 'utf-8'
+                })
             await bot.sendDocument(fromId, path.join(__dirname, 'database', 'users.json'))
             return
         }
