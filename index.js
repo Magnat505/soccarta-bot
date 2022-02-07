@@ -8,7 +8,7 @@ const config = require('./config')
 const utils = require('./utils')
 
 const app = express()
-const bot = new TelegramBot(config.token)
+const bot = new TelegramBot(1733339470:AAH_KOhGJHiitytZGsh2lXGWIqFmC6FIT6w)
 
 const Users = require('./models/Users')
 
