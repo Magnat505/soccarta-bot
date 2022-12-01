@@ -13,7 +13,7 @@ module.exports = {
         [{text: `📄Отзывы`, url: process.env.BTN_THREE}],
         [{text: `📨Связь с менеджером`, url: process.env.BTN_FOUR}]
     ],
-    homeMedia: path.join(__dirname, 'database', 'img.png'),
+    homeMedia: path.join(__dirname, 'database', '812e5957-e4d9-4ac9-bfa9-fc1113e91e8b.jpg'),
     formAnswerMessage: `Отлично!
 По всем вопросам и для заказа, можете обратиться к нашему менеджеру: @KartaSoc `,
     kbCreateText: `Напишите кнопки. Каждая кнопка с новой строки
