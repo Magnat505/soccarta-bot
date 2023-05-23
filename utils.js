@@ -9,9 +9,9 @@ module.exports = {
 
 Чтоб узнать актуальную цену ,подписывайтесь на канал @KartaSocMsk`,
     homeMarkup: [
-        [{text: `✅Преимущества карты`, url: process.env.BTN_ONE}],
-        [{text: `📄Отзывы`, url: process.env.BTN_THREE}],
-        [{text: `📨Связь с менеджером`, url: process.env.BTN_FOUR}]
+        [{text: `✅Преимущества карты`, url: "https://telegra.ph/PREIMUSHCHESTVA-SOCIALNOJ-KARTY-04-04"}],
+        [{text: `📄Отзывы`, url: "https://t.me/KartaSocMsk"}],
+        [{text: `📨Связь с менеджером`, url: "https://t.me/kartasoc"}]
     ],
     homeMedia: path.join(__dirname, 'database', '812e5957-e4d9-4ac9-bfa9-fc1113e91e8b.JPG'),
     formAnswerMessage: `Отлично!

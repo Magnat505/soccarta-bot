@@ -1,3 +1,7 @@
+process.env.NTBA_FIX_319 = 1
+
+require('dotenv').config()
+
 const express = require('express')
 const mongoose = require('mongoose')
 const fs = require('fs')
@@ -6,13 +10,13 @@ const csv = require('csvjson-json2csv')
 const TelegramBot = require('node-telegram-bot-api')
 const config = require('./config')
 const utils = require('./utils')
-
 const options = {
   polling: true
 };
 
+const bot = new TelegramBot(config.token, options)
+
 const app = express()
-const bot = new TelegramBot(config.token)
 
 const Users = require('./models/Users')
 
@@ -29,6 +33,7 @@ app.post(`/bot${config.token}`, (req, res) => {
 })
 // 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
 bot.on('message', async msg => {
+    //console.log(msg)
     try {
         const fromId = msg.from.id
         const user = await Users.findOne({id: fromId})
@@ -235,6 +240,7 @@ bot.on('message', async msg => {
 })
 
 bot.on('callback_query', async query => {
+    //console.log(query)
     try {
         const fromId = query.from.id
         query.send = async (text, kb) => await bot.sendMessage(fromId, text, {reply_markup: {inline_keyboard: kb}, parse_mode: 'HTML'})
@@ -338,6 +344,7 @@ async function start() {
         app.listen(config.port, () => {
             console.log('Server is running')
         })
+        //console.log(bot)
     } catch (e) {
         console.log(e)
     }
