@@ -7,6 +7,10 @@ const TelegramBot = require('node-telegram-bot-api')
 const config = require('./config')
 const utils = require('./utils')
 
+const options = {
+  polling: true
+};
+
 const app = express()
 const bot = new TelegramBot(config.token)
 
